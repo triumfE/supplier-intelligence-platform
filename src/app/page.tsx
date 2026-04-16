@@ -36,10 +36,10 @@ export default function HomePage() {
             {t("hero.badge")}
           </div>
 
-          <h1 style={{ color: "white", fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800,
-            lineHeight: 1.15, marginBottom: 20, letterSpacing: "-0.02em" }}>
+          <h1 style={{ color: "white", fontSize: "clamp(36px, 5vw, 60px)", fontWeight: 800,
+            lineHeight: 1.1, marginBottom: 20, letterSpacing: "-0.02em" }}>
             {t("hero.h1a")}<br />
-            <span style={{ color: "#60a5fa" }}>{t("hero.h1b")}</span> {t("hero.h1c")}
+            <span style={{ color: "#60a5fa" }}>{t("hero.h1b")}</span>
           </h1>
 
           <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 18, lineHeight: 1.7,
