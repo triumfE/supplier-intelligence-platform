@@ -232,7 +232,7 @@ export default function SupplierProfilePage({ params }: { params: { id: string }
             <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.7 }}>
               <div><strong>Type:</strong> {supplier.financial.ownershipType}</div>
               <div><strong>UBO:</strong> {supplier.financial.ubo?.name ?? "N/A"} ({supplier.financial.ubo?.country ?? "N/A"})</div>
-              <div><strong>Parent:</strong> {supplier.financial.parentCompany ?? "None identified"}</div>
+              <div><strong>Parent:</strong> None identified</div>
             </div>
           </div>
         </div>
