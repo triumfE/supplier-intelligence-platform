@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Search, Bell, Globe, ChevronDown, Shield, BarChart3,
-  FileText, Zap, Users, Menu, X
+  FileText, Zap, Menu, X, TrendingUp
 } from "lucide-react";
 
 const navItems = [
   { href: "/suppliers", label: "Discovery", icon: Search },
   { href: "/resilience", label: "Risk & Resilience", icon: BarChart3 },
+  { href: "/market", label: "Market Intelligence", icon: TrendingUp },
   { href: "/documents", label: "Document Hub", icon: FileText },
   { href: "/rfq", label: "RFQ Engine", icon: Zap },
   { href: "/suppliers?naval=true", label: "Naval & Defence", icon: Shield },

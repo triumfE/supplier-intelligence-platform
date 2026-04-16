@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, BarChart3, FileText, Zap, Shield, ArrowRight, Globe2, TrendingUp, Users } from "lucide-react";
+import { Search, BarChart3, FileText, Zap, Shield, ArrowRight, Globe2, TrendingUp } from "lucide-react";
 
 const stats = [
   { label: "Suppliers indexed", value: "94,000+" },
@@ -43,6 +43,13 @@ const features = [
     description: "ITAR-safe handling, AQAP-certified suppliers, dual-use screening. Built for defence-grade procurement sensitivity.",
     href: "/suppliers?naval=true",
     color: "#0c2340",
+  },
+  {
+    icon: TrendingUp,
+    title: "Market Intelligence",
+    description: "Metallpriser LME, stål MEPS, propellerlegeringar, energi & fraktindex. Historik och prognos upp till 12 månader framåt.",
+    href: "/market",
+    color: "#0891b2",
   },
   {
     icon: Globe2,
