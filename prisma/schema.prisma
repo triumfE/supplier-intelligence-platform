@@ -1,0 +1,579 @@
+// Supplier Intelligence Platform — Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ORGANISATIONS (Buyer companies) ───────────────────────────────────────
+
+model Organisation {
+  id               String   @id @default(cuid())
+  name             String
+  orgNumber        String?
+  country          String
+  industry         String?
+  plan             OrgPlan  @default(FREE)
+  navalModeEnabled Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  users             User[]
+  rfqs              Rfq[]
+  supplierRelations SupplierRelation[]
+  documentTemplates DocumentTemplate[]
+  resilienceAlerts  ResilienceAlert[]
+  tcaCalculations   TcaCalculation[]
+
+  @@map("organisations")
+}
+
+enum OrgPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+// ─── USERS ─────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  orgId         String
+  name          String
+  email         String   @unique
+  role          UserRole @default(BUYER)
+  preferredLang String   @default("en")
+  createdAt     DateTime @default(now())
+
+  org        Organisation      @relation(fields: [orgId], references: [id])
+  createdRfqs Rfq[]
+  documents   Document[]
+  comments    SupplierComment[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  BUYER
+  VIEWER
+}
+
+// ─── SUPPLIERS ─────────────────────────────────────────────────────────────
+
+model Supplier {
+  id             String         @id @default(cuid())
+  name           String
+  orgNumber      String?
+  country        String
+  city           String?
+  region         String?
+  founded        Int?
+  website        String?
+  description    String?
+  tier           SupplierTier   @default(REGIONAL)
+  status         SupplierStatus @default(ACTIVE)
+  profileClaimed Boolean        @default(false)
+  isHyperlocal   Boolean        @default(false)
+  navalCertified Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  capabilities   SupplierCapability[]
+  financials     SupplierFinancial[]
+  certifications SupplierCertification[]
+  capacity       SupplierCapacity?
+  esg            SupplierEsg?
+  relations      SupplierRelation[]
+  documents      Document[]
+  rfqResponses   RfqResponse[]
+  auditRecords   SupplierAudit[]
+  qaScores       QaScore[]
+  alerts         ResilienceAlert[]
+  comments       SupplierComment[]
+  drawingMatches DrawingMatch[]
+
+  @@map("suppliers")
+}
+
+enum SupplierTier {
+  MICRO
+  REGIONAL
+  NATIONAL
+  GLOBAL
+}
+
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+  RESTRICTED
+  BLACKLISTED
+}
+
+// ─── CAPABILITIES ──────────────────────────────────────────────────────────
+
+model SupplierCapability {
+  id          String   @id @default(cuid())
+  supplierId  String
+  type        String
+  materials   String[]
+  industries  String[]
+  tolerances  String?
+  batchMin    Int?
+  batchMax    Int?
+  leadTimeMin Int?
+  leadTimeMax Int?
+  machinery   Json?
+  updatedAt   DateTime @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_capabilities")
+}
+
+// ─── CERTIFICATIONS ────────────────────────────────────────────────────────
+
+model SupplierCertification {
+  id         String    @id @default(cuid())
+  supplierId String
+  name       String
+  standard   String?
+  issuedBy   String?
+  issuedAt   DateTime?
+  expiresAt  DateTime?
+  verified   Boolean   @default(false)
+  fileUrl    String?
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_certifications")
+}
+
+// ─── FINANCIAL DATA (DNB/Creditsafe) ───────────────────────────────────────
+
+model SupplierFinancial {
+  id               String    @id @default(cuid())
+  supplierId       String
+  source           String    @default("manual")
+  creditRating     String?
+  creditScore      Int?
+  paymentScore     Int?
+  revenueYear      Int
+  revenue          Float?
+  revenueCurrency  String?
+  ebit             Float?
+  equityRatio      Float?
+  ubo              Json?
+  ownershipType    String?
+  parentCompany    String?
+  riskClass        RiskClass @default(MEDIUM)
+  bankruptcyFlag   Boolean   @default(false)
+  sanctionFlag     Boolean   @default(false)
+  fetchedAt        DateTime  @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_financials")
+}
+
+enum RiskClass {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ─── CAPACITY ──────────────────────────────────────────────────────────────
+
+model SupplierCapacity {
+  id             String   @id @default(cuid())
+  supplierId     String   @unique
+  monthlyHours   Int?
+  currentLoad    Int?
+  availableSlots String?
+  updatedAt      DateTime @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_capacity")
+}
+
+// ─── ESG ───────────────────────────────────────────────────────────────────
+
+model SupplierEsg {
+  id              String   @id @default(cuid())
+  supplierId      String   @unique
+  co2ScopeOneTwo  Float?
+  renewableEnergy Int?
+  iso14001        Boolean  @default(false)
+  sa8000          Boolean  @default(false)
+  sbtiCommitted   Boolean  @default(false)
+  esgScore        Int?
+  updatedAt       DateTime @updatedAt
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_esg")
+}
+
+// ─── QA SCORES ─────────────────────────────────────────────────────────────
+
+model QaScore {
+  id                String   @id @default(cuid())
+  supplierId        String
+  period            String
+  deliveryPrecision Float?
+  nonConformance    Float?
+  openDeviations    Int?
+  resolvedClaims    Int?
+  avgResolutionDays Int?
+  overallScore      Int?
+  createdAt         DateTime @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("qa_scores")
+}
+
+// ─── SUPPLIER AUDITS ───────────────────────────────────────────────────────
+
+model SupplierAudit {
+  id                String      @id @default(cuid())
+  supplierId        String
+  auditDate         DateTime
+  nextAuditDate     DateTime?
+  auditType         AuditType
+  score             Int?
+  result            AuditResult
+  qmsScore          Int?
+  productionScore   Int?
+  traceabilityScore Int?
+  hseScore          Int?
+  esgScore          Int?
+  findings          Json?
+  auditorName       String?
+  reportUrl         String?
+  createdAt         DateTime    @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("supplier_audits")
+}
+
+enum AuditType {
+  SELF_ASSESSMENT
+  REMOTE
+  ON_SITE
+}
+
+enum AuditResult {
+  PASS
+  CONDITIONAL
+  FAIL
+}
+
+// ─── SUPPLIER RELATIONS ────────────────────────────────────────────────────
+
+model SupplierRelation {
+  id            String         @id @default(cuid())
+  orgId         String
+  supplierId    String
+  status        RelationStatus @default(PROSPECT)
+  isFavorite    Boolean        @default(false)
+  tags          String[]
+  notes         String?
+  annualSpend   Float?
+  spendCurrency String?
+  category      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  org      Organisation @relation(fields: [orgId], references: [id])
+  supplier Supplier     @relation(fields: [supplierId], references: [id])
+
+  @@unique([orgId, supplierId])
+  @@map("supplier_relations")
+}
+
+enum RelationStatus {
+  PROSPECT
+  UNDER_EVALUATION
+  APPROVED
+  PREFERRED
+  SUSPENDED
+  REJECTED
+}
+
+// ─── DOCUMENTS ─────────────────────────────────────────────────────────────
+
+model Document {
+  id          String    @id @default(cuid())
+  supplierId  String
+  createdById String
+  docType     DocType
+  status      DocStatus @default(DRAFT)
+  templateId  String?
+  language    String    @default("en")
+  title       String
+  content     Json?
+  fileUrl     String?
+  signedAt    DateTime?
+  expiresAt   DateTime?
+  adobeSignId String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  supplier   Supplier          @relation(fields: [supplierId], references: [id])
+  createdBy  User              @relation(fields: [createdById], references: [id])
+  template   DocumentTemplate? @relation(fields: [templateId], references: [id])
+
+  @@map("documents")
+}
+
+enum DocType {
+  NDA
+  SA
+  TCA_REPORT
+  RFQ_TEMPLATE
+  OFFER
+  CUSTOM
+}
+
+enum DocStatus {
+  DRAFT
+  SENT
+  AWAITING_SIGNATURE
+  SIGNED
+  EXPIRED
+  TERMINATED
+}
+
+// ─── DOCUMENT TEMPLATES ────────────────────────────────────────────────────
+
+model DocumentTemplate {
+  id           String   @id @default(cuid())
+  orgId        String?
+  name         String
+  docType      DocType
+  language     String   @default("en")
+  jurisdiction String?
+  isCustom     Boolean  @default(false)
+  variables    Json
+  content      String
+  version      String   @default("1.0")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  org       Organisation? @relation(fields: [orgId], references: [id])
+  documents Document[]
+
+  @@map("document_templates")
+}
+
+// ─── RFQ ENGINE ────────────────────────────────────────────────────────────
+
+model Rfq {
+  id          String    @id @default(cuid())
+  orgId       String
+  createdById String
+  title       String
+  status      RfqStatus @default(DRAFT)
+  description String?
+  currency    String    @default("EUR")
+  deadline    DateTime?
+  ndaRequired Boolean   @default(false)
+  drawingId   String?
+  items       Json
+  navalScope  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  org       Organisation @relation(fields: [orgId], references: [id])
+  createdBy User         @relation(fields: [createdById], references: [id])
+  responses RfqResponse[]
+  drawing   Drawing?     @relation(fields: [drawingId], references: [id])
+
+  @@map("rfqs")
+}
+
+enum RfqStatus {
+  DRAFT
+  SENT
+  RESPONSES_RECEIVED
+  UNDER_EVALUATION
+  CLOSED
+  AWARDED
+}
+
+model RfqResponse {
+  id            String         @id @default(cuid())
+  rfqId         String
+  supplierId    String
+  status        ResponseStatus @default(RECEIVED)
+  unitPrice     Float?
+  totalPrice    Float?
+  currency      String?
+  leadTimeWeeks Int?
+  validUntil    DateTime?
+  paymentTerms  String?
+  notes         String?
+  aiScore       Int?
+  tcaCalculated Float?
+  fileUrls      String[]
+  createdAt     DateTime       @default(now())
+
+  rfq      Rfq      @relation(fields: [rfqId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("rfq_responses")
+}
+
+enum ResponseStatus {
+  RECEIVED
+  UNDER_REVIEW
+  SHORTLISTED
+  ACCEPTED
+  REJECTED
+}
+
+// ─── TCA (Total Cost of Acquisition) ───────────────────────────────────────
+
+model TcaCalculation {
+  id               String   @id @default(cuid())
+  rfqId            String?
+  supplierId       String
+  orgId            String
+  unitPrice        Float
+  currency         String
+  freightCost      Float?
+  customsDuty      Float?
+  vatAmount        Float?
+  inspectionCost   Float?
+  storageCost      Float?
+  currencyRisk     Float?
+  geopoliticalRisk Float?
+  tcaTotal         Float
+  tcaPerUnit       Float?
+  quantity         Int?
+  incoterms        String?
+  hsCode           String?
+  notes            String?
+  createdAt        DateTime @default(now())
+
+  org Organisation @relation(fields: [orgId], references: [id])
+
+  @@map("tca_calculations")
+}
+
+// ─── DRAWING INTELLIGENCE ──────────────────────────────────────────────────
+
+model Drawing {
+  id              String         @id @default(cuid())
+  orgId           String
+  title           String
+  secrecyLevel    DrawingSecrecy
+  fileUrl         String?
+  geometryType    String?
+  textDescription String?
+  aiExtracted     Json?
+  createdAt       DateTime       @default(now())
+
+  rfqs    Rfq[]
+  matches DrawingMatch[]
+
+  @@map("drawings")
+}
+
+enum DrawingSecrecy {
+  FULL
+  MASKED
+  CONTOUR_ONLY
+}
+
+model DrawingMatch {
+  id         String   @id @default(cuid())
+  drawingId  String
+  supplierId String
+  matchScore Int
+  reasoning  String?
+  createdAt  DateTime @default(now())
+
+  drawing  Drawing  @relation(fields: [drawingId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@map("drawing_matches")
+}
+
+// ─── RESILIENCE ENGINE ─────────────────────────────────────────────────────
+
+model ResilienceAlert {
+  id          String    @id @default(cuid())
+  orgId       String
+  supplierId  String?
+  alertType   AlertType
+  severity    Severity
+  title       String
+  description String
+  metric      Json?
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  org      Organisation @relation(fields: [orgId], references: [id])
+  supplier Supplier?    @relation(fields: [supplierId], references: [id])
+
+  @@map("resilience_alerts")
+}
+
+enum AlertType {
+  CONCENTRATION_RISK
+  FINANCIAL_DISTRESS
+  GEOPOLITICAL_RISK
+  SANCTIONS_HIT
+  CAPACITY_LOW
+  CERTIFICATION_EXPIRY
+}
+
+enum Severity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ─── TEAM COLLABORATION ────────────────────────────────────────────────────
+
+model SupplierComment {
+  id         String   @id @default(cuid())
+  supplierId String
+  userId     String
+  tag        String?
+  content    String
+  isInternal Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@map("supplier_comments")
+}
+
+// ─── BENCHMARK DATA ────────────────────────────────────────────────────────
+
+model BenchmarkData {
+  id           String   @id @default(cuid())
+  category     String
+  process      String
+  region       String
+  pricePerHour Float?
+  pricePerKg   Float?
+  leadTimeAvg  Int?
+  dataYear     Int
+  source       String?
+  createdAt    DateTime @default(now())
+
+  @@map("benchmark_data")
+}
