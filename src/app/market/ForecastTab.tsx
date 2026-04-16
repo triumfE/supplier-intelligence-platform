@@ -27,10 +27,6 @@ const chartData = forecastData.map(d=>({
 export default function ForecastTab() {
   return (
     <div>
-      <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:8, padding:"10px 16px", marginBottom:20, fontSize:13, color:"#92400e" }}>
-        <strong>Indikativ prognos.</strong> Baseras på MEPS-modell, LME-terminer och FEAF-index. Uppdateras månadsvis.
-      </div>
-
       {/* Signal cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))", gap:12, marginBottom:24 }}>
         {signals.map(s=>(

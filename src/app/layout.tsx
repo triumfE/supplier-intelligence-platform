@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layout/Header";
+import { AuthProvider } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Supplier Intelligence Platform",
@@ -15,10 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="min-h-full flex flex-col" style={{ background: "#f8fafc" }}>
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
+        <AuthProvider>
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

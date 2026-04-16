@@ -64,10 +64,6 @@ function Chart({title,sub,data,series,height=260}:{title:string,sub:string,data:
 export default function MaterialTab() {
   return (
     <div>
-      <div style={{ background:"#fffbeb", border:"1px solid #fde68a", borderRadius:8, padding:"10px 16px", marginBottom:20, fontSize:13, color:"#92400e" }}>
-        <strong>Källor:</strong> FEAF, CAEF, LME. Priser i EUR/tonne. Bronze-priser baserade på LME-koppar + legeringstillägg.
-      </div>
-
       <h2 style={{ fontSize:17, fontWeight:800, color:"#0c2340", margin:"0 0 14px" }}>Bronze &amp; Koppar-legeringar</h2>
       <Kpi data={bronzeData} series={bronzeS} />
       <Chart title="Bronze Index (EUR/tonne)" sub="NiAlBronze = standard för marina propellrar. CuNi30 för sjövattenssystem." data={bronzeData} series={bronzeS} />
