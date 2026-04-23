@@ -6,21 +6,22 @@ import { useState } from "react";
 import {
   Search, Bell, Globe, ChevronDown, Shield, BarChart3, FileText,
   Zap, Menu, X, TrendingUp, ClipboardCheck, DollarSign, AlertTriangle,
-  FolderOpen, Gauge, ChevronRight
+  FolderOpen, Gauge, ChevronRight, Newspaper, MessageSquare
 } from "lucide-react";
 import { useLang, type Lang } from "@/lib/lang";
 
 const track1 = [
-  { href: "/suppliers", label: "Discovery", icon: Search },
-  { href: "/suppliers?hyperlocal=true", label: "Hyperlocal", icon: Globe },
-  { href: "/suppliers?naval=true", label: "Naval & Defence", icon: Shield },
+  { href: "/suppliers", label: "Supplier Discovery", icon: Search },
+  { href: "/news", label: "News & Benchmarks", icon: Newspaper },
+  { href: "/community", label: "Community", icon: MessageSquare },
+  { href: "/alerts", label: "Supplier Alerts", icon: Bell },
+  { href: "/market", label: "Market Data", icon: TrendingUp },
 ];
 
 const track2 = [
   { href: "/performance", label: "Supplier Performance", icon: Gauge },
   { href: "/cost-analysis", label: "AI Cost Analysis", icon: DollarSign },
   { href: "/risk", label: "Risk Monitor", icon: AlertTriangle },
-  { href: "/market", label: "Market Intelligence", icon: TrendingUp },
   { href: "/documents", label: "Document Hub", icon: FolderOpen },
   { href: "/rfq", label: "RFQ Engine", icon: Zap },
 ];
@@ -38,7 +39,7 @@ export default function Header() {
   const [trackOpen, setTrackOpen] = useState<1|2|null>(null);
   const { lang, setLang } = useLang();
 
-  const isTrack2 = ["/performance","/cost-analysis","/risk","/market","/documents","/rfq"].some(p => pathname.startsWith(p));
+  const isTrack2 = ["/performance","/cost-analysis","/risk","/documents","/rfq"].some(p => pathname.startsWith(p));
   const activeTrack = isTrack2 ? 2 : 1;
 
   return (
