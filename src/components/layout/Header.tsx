@@ -6,7 +6,7 @@ import { useState } from "react";
 import {
   Search, Bell, Globe, ChevronDown, Shield, BarChart3, FileText,
   Zap, Menu, X, TrendingUp, ClipboardCheck, DollarSign, AlertTriangle,
-  FolderOpen, Gauge, ChevronRight, Newspaper, MessageSquare
+  FolderOpen, Gauge, ChevronRight, Newspaper, MessageSquare, Lock
 } from "lucide-react";
 import { useLang, type Lang } from "@/lib/lang";
 
@@ -24,6 +24,7 @@ const track2 = [
   { href: "/risk", label: "Risk Monitor", icon: AlertTriangle },
   { href: "/documents", label: "Document Hub", icon: FolderOpen },
   { href: "/rfq", label: "RFQ Engine", icon: Zap },
+  { href: "/naval", label: "Naval & Defence", icon: Shield, locked: true },
 ];
 
 const languages: { id: Lang; label: string; flag: string }[] = [
@@ -39,7 +40,7 @@ export default function Header() {
   const [trackOpen, setTrackOpen] = useState<1|2|null>(null);
   const { lang, setLang } = useLang();
 
-  const isTrack2 = ["/performance","/cost-analysis","/risk","/documents","/rfq"].some(p => pathname.startsWith(p));
+  const isTrack2 = ["/performance","/cost-analysis","/risk","/documents","/rfq","/naval"].some(p => pathname.startsWith(p));
   const activeTrack = isTrack2 ? 2 : 1;
 
   return (
@@ -111,14 +112,28 @@ export default function Header() {
                   <div style={{ padding: "8px 14px", background: "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1 }}>Track 2 — Procurement</span>
                   </div>
-                  {track2.map(item => (
-                    <Link key={item.href} href={item.href} onClick={() => setTrackOpen(null)}
-                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                        textDecoration: "none", color: pathname.startsWith(item.href.split("?")[0]) ? "#0070f3" : "#334155",
-                        fontSize: 13, fontWeight: pathname.startsWith(item.href.split("?")[0]) ? 600 : 400 }}>
-                      <item.icon size={14} style={{ color: "#94a3b8" }} /> {item.label}
-                    </Link>
-                  ))}
+                  {track2.map(item => {
+                    const isLocked = (item as {locked?:boolean}).locked;
+                    const isActive = pathname.startsWith(item.href.split("?")[0]);
+                    if (isLocked) {
+                      return (
+                        <div key={item.href} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                          borderTop: "1px solid #f1f5f9", color: "#94a3b8", fontSize: 13, cursor: "default" }}>
+                          <item.icon size={14} style={{ color: "#94a3b8" }} />
+                          <span style={{ flex: 1 }}>{item.label}</span>
+                          <Lock size={12} style={{ color: "#d97706" }} />
+                        </div>
+                      );
+                    }
+                    return (
+                      <Link key={item.href} href={item.href} onClick={() => setTrackOpen(null)}
+                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
+                          textDecoration: "none", color: isActive ? "#0070f3" : "#334155",
+                          fontSize: 13, fontWeight: isActive ? 600 : 400 }}>
+                        <item.icon size={14} style={{ color: "#94a3b8" }} /> {item.label}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
